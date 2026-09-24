@@ -1,0 +1,26 @@
+name: Zig Docs CD
+run-name: Zig Docs CD | ${{ github.event_name }} by ${{ github.actor }} on '${{ github.ref_name }}'
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: YetAnotherMechanicusEnjoyer/zig-actions/docs@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          zig-version: "0.16.0"
+          command-docs: "zig build docs"
+          docs-directory: "zig-out/docs"
