@@ -1,9 +1,16 @@
 .{
-    .name = .your_project_name,
-    .fingerprint = 0x000,
+    .name = .zclock,
+    .fingerprint = 0x6322c68bd378e163,
     .version = "0.1.0",
     .dependencies = .{
-        // TODO: zig fetch --save git+https://github.com/YetAnotherMechanicusEnjoyer/libstring
+        .string = .{
+            .url = "git+https://github.com/YetAnotherMechanicusEnjoyer/libstring#bbfa07aeac8af6b9a59685d819ceda2f67a1a694",
+            .hash = "string-0.0.1-PoOZyi67AAC_6tCF0Su5Bh9Yg8zAe4v7F5Py5WfAx20P",
+        },
+        .vaxis = .{
+            .url = "git+https://github.com/rockorager/libvaxis.git#173a890d1394946b5d7623c66cd34bcd36d8eeb8",
+            .hash = "vaxis-0.6.0-BWNV_OybDABnzf12gCPzy_IgAjkKkonDJF-2O_7XyLtD",
+        },
     },
     .paths = .{
         "README.md",

@@ -10,6 +10,7 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
+        .link_libc = true,
     });
 
     if (optimize != .Debug) {
@@ -21,22 +22,26 @@ pub fn build(b: *std.Build) void {
     const libstring = b.dependency("string", .{ .target = target, .optimize = optimize });
     module.addImport("string", libstring.module("string"));
 
+    const vaxis = b.dependency("vaxis", .{ .target = target, .optimize = optimize });
+    module.addImport("vaxis", vaxis.module("vaxis"));
+
     const exe = b.addExecutable(.{
-        .name = "your-project-name",
+        .name = "zclock",
         .root_module = module,
     });
 
     const tests_mod = b.createModule(.{
-        .root_source_file = b.path("tests/your-project-name.zig"),
+        .root_source_file = b.path("tests/zclock.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     tests_mod.addImport("string", libstring.module("string"));
-    tests_mod.addImport("your-project-name", module);
+    tests_mod.addImport("vaxis", vaxis.module("vaxis"));
+    tests_mod.addImport("zclock", module);
 
     const tests = b.addTest(.{
-        .name = "string_test",
+        .name = "zclock_test",
         .root_module = tests_mod,
     });
 
