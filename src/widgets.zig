@@ -3,13 +3,15 @@ const std = @import("std");
 const vaxis = @import("vaxis");
 const String = @import("string").String;
 
-const ui = @import("ui.zig");
+const font = @import("font.zig");
 const print_clock = @import("font.zig").print_clock;
 
 const time = @cImport(@cInclude("time.h"));
 
+pub const DEFAULT_COLOR = [_]u8{ 50, 255, 50 };
+
 pub fn clock(allocator: std.mem.Allocator, win: *vaxis.Window, err_ctx: *String) !void {
-    const color: vaxis.Color = .{ .rgb = ui.DEFAULT_COLOR };
+    const color: vaxis.Color = .{ .rgb = DEFAULT_COLOR };
     const style = vaxis.Style{ .fg = color, .bold = true };
 
     const formatted_time = get_formatted_localtime(allocator) catch |e| {
@@ -18,7 +20,10 @@ pub fn clock(allocator: std.mem.Allocator, win: *vaxis.Window, err_ctx: *String)
     };
     defer allocator.free(formatted_time);
 
-    const clock_win = win.child(.{ .x_off = @intCast(@max(0, win.width / 2 - ui.TEXT_WIDTH / 2)), .y_off = @intCast(@max(0, win.height / 2 - ui.TEXT_HEIGHT / 2)) });
+    const clock_win = win.child(.{
+        .x_off = @intCast((win.width -| try font.get_real_width(formatted_time)) / 2),
+        .y_off = @intCast((win.height -| font.TEXT_HEIGHT) / 2),
+    });
 
     print_clock(allocator, clock_win, style, formatted_time) catch |e| {
         try err_ctx.push("while printing clock, ");

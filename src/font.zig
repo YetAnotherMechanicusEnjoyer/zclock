@@ -2,8 +2,6 @@ const std = @import("std");
 
 const vaxis = @import("vaxis");
 
-const ui = @import("ui.zig");
-
 const FONT = [_][5]u8{
     .{ 0b111, 0b101, 0b101, 0b101, 0b111 }, // 0
     .{ 0b010, 0b110, 0b010, 0b010, 0b111 }, // 1
@@ -25,8 +23,21 @@ const PIXEL_ON = "█";
 const PIXEL_OFF = " ";
 const SPACING = "  ";
 
+pub const TEXT_HEIGHT = FONT[0].len;
+
+pub fn get_real_width(text: []const u8) !usize {
+    if (text.len == 0) return 0;
+
+    const char_len = 3;
+
+    const text_width = (char_len * text.len);
+    const spacing_width = (SPACING.len * (text.len - 1));
+
+    return text_width + spacing_width;
+}
+
 pub fn print_clock(allocator: std.mem.Allocator, win: vaxis.Window, style: vaxis.Style, text: []const u8) !void {
-    for (0..ui.TEXT_HEIGHT) |row| {
+    for (0..TEXT_HEIGHT) |row| {
         var line_buf: std.ArrayList(u8) = .empty;
         defer line_buf.deinit(allocator);
 

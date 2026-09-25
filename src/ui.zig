@@ -5,9 +5,6 @@ const String = @import("string").String;
 
 const widgets = @import("widgets.zig");
 
-pub const TEXT_HEIGHT = 5;
-pub const TEXT_WIDTH = 31;
-pub const DEFAULT_COLOR = [_]u8{ 50, 255, 50 };
 const SLEEP_DELTA = 16;
 
 const Event = union(enum) {
@@ -81,10 +78,10 @@ fn frame_loop(io: std.Io, allocator: std.mem.Allocator, vx: *vaxis.Vaxis, tty: *
             return e;
         }) return;
 
-        const win = vx.window();
+        var win = vx.window();
         win.clear();
 
-        draw(frame_allocator, win, err_ctx) catch |e| {
+        draw(frame_allocator, &win, err_ctx) catch |e| {
             try err_ctx.push("while drawing, ");
             return e;
         };
@@ -116,7 +113,7 @@ fn event_handler(allocator: std.mem.Allocator, vx: *vaxis.Vaxis, tty: *vaxis.Tty
     return false;
 }
 
-fn draw(allocator: std.mem.Allocator, win: vaxis.Window, err_ctx: *String) !void {
+fn draw(allocator: std.mem.Allocator, win: *vaxis.Window, err_ctx: *String) !void {
     widgets.clock(allocator, win, err_ctx) catch |e| {
         try err_ctx.push("in clock widget, ");
         return e;
