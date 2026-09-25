@@ -2,6 +2,8 @@ const std = @import("std");
 
 const vaxis = @import("vaxis");
 
+const ui = @import("ui.zig");
+
 const FONT = [_][5]u8{
     .{ 0b111, 0b101, 0b101, 0b101, 0b111 }, // 0
     .{ 0b010, 0b110, 0b010, 0b010, 0b111 }, // 1
@@ -15,27 +17,29 @@ const FONT = [_][5]u8{
     .{ 0b111, 0b101, 0b111, 0b001, 0b111 }, // 9
     .{ 0b000, 0b010, 0b000, 0b010, 0b000 }, // :
 };
+const COLON_IDX = 10;
+
+const MASKS = [_]u8{ 0b100, 0b010, 0b001 };
 
 const PIXEL_ON = "█";
 const PIXEL_OFF = " ";
 const SPACING = "  ";
 
 pub fn print_clock(allocator: std.mem.Allocator, win: vaxis.Window, style: vaxis.Style, text: []const u8) !void {
-    for (0..5) |row| {
+    for (0..ui.TEXT_HEIGHT) |row| {
         var line_buf: std.ArrayList(u8) = .empty;
         defer line_buf.deinit(allocator);
 
         for (text, 0..) |char, i| {
             const font_idx: usize = switch (char) {
                 '0'...'9' => char - '0',
-                ':' => 10,
+                ':' => COLON_IDX,
                 else => return error.InvalidCharacter,
             };
 
             const bits = FONT[font_idx][row];
-            const masks = [_]u8{ 0b100, 0b010, 0b001 };
 
-            for (masks) |mask| {
+            for (MASKS) |mask| {
                 if ((bits & mask) != 0) {
                     try line_buf.appendSlice(allocator, PIXEL_ON);
                 } else {
