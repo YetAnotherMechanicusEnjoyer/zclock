@@ -32,7 +32,6 @@ pub fn main(init: std.process.Init) !u8 {
 }
 
 fn cli(init: std.process.Init, allocator: std.mem.Allocator, args: *std.process.Args.Iterator, err_ctx: *String) !void {
-    _ = err_ctx;
     while (args.next()) |arg| {
         if (eql(u8, arg, "-h") or eql(u8, arg, "--help")) {
             print_usage(init.io);
@@ -40,7 +39,7 @@ fn cli(init: std.process.Init, allocator: std.mem.Allocator, args: *std.process.
         } else return Error.BadUsage;
     }
 
-    try ui.render(init, allocator);
+    try ui.render(init, allocator, err_ctx);
 }
 
 fn print_usage(io: std.Io) void {
