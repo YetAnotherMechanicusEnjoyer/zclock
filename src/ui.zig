@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const vaxis = @import("vaxis");
+const print_clock = @import("font.zig").print_clock;
 
 const time = @cImport(@cInclude("time.h"));
 
@@ -31,7 +32,13 @@ pub fn render(init: std.process.Init, allocator: std.mem.Allocator) !void {
     try vx.queryColor(tty.writer(), .fg);
     try vx.queryColor(tty.writer(), .bg);
 
+    var frame_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer frame_arena.deinit();
+
     while (true) {
+        _ = frame_arena.reset(.retain_capacity);
+        const frame_allocator = frame_arena.allocator();
+
         while (try loop.tryEvent()) |event| {
             switch (event) {
                 .key_press => |key| if (key.matches('c', .{ .ctrl = true }) or key.matches('q', .{})) return,
@@ -45,21 +52,23 @@ pub fn render(init: std.process.Init, allocator: std.mem.Allocator) !void {
         const win = vx.window();
         win.clear();
 
-        const color: vaxis.Color = .{ .rgb = DEFAULT_COLOR };
+        try draw(frame_allocator, win);
 
-        const text = try get_formatted_time(allocator);
-        defer allocator.free(text);
-
-        const segment: vaxis.Segment = .{
-            .text = text,
-            .style = .{ .fg = color, .bold = true },
-        };
-
-        const center = vaxis.widgets.alignment.center(win, @intCast(text.len - 1), 1);
-        _ = center.printSegment(segment, .{ .wrap = .word });
         try vx.render(tty.writer());
         try init.io.sleep(.fromMilliseconds(SLEEP_DELTA), .real);
     }
+}
+
+fn draw(allocator: std.mem.Allocator, win: vaxis.Window) !void {
+    const color: vaxis.Color = .{ .rgb = DEFAULT_COLOR };
+    const style = vaxis.Style{ .fg = color, .bold = true };
+
+    const formatted_time = try get_formatted_time(allocator);
+    defer allocator.free(formatted_time);
+
+    const clock_win = win.child(.{ .x_off = @intCast(@max(0, win.width / 2 - 16)), .y_off = @intCast(@max(0, win.height / 2 - 3)) });
+
+    try print_clock(allocator, clock_win, style, formatted_time);
 }
 
 fn get_formatted_time(allocator: std.mem.Allocator) ![]const u8 {
@@ -70,5 +79,5 @@ fn get_formatted_time(allocator: std.mem.Allocator) ![]const u8 {
     const minutes = @as(u32, @intCast(localtime.tm_min));
     const seconds = @as(u32, @intCast(localtime.tm_sec));
 
-    return std.fmt.allocPrint(allocator, "{0d:0>2}:{1d:0>2}:{2d:0>2}\n", .{ hours, minutes, seconds });
+    return std.fmt.allocPrint(allocator, "{0d:0>2}:{1d:0>2}:{2d:0>2}", .{ hours, minutes, seconds });
 }
